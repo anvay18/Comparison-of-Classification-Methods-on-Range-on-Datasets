@@ -1,0 +1,220 @@
+---
+title: "Abalone Data Analysis"
+author: "Anvay Ajit Karambelkar"
+date: "18/09/2019"
+output: html_document
+---
+
+
+R libraries
+
+```{r}
+library(knitr)
+library(rmarkdown)
+library(markdown)
+library(caret)
+```
+
+The attributes in this data are the physical measurements of abalone shell and the classes represents number of rings. The rings are segregated into three categories (rings 1-8 in one class, 9 and 10 into second class, 11 onwards into third class). The age of abalone can be calculated by counting the number of rings  on the shell, but this task can be tedious and time-consuming. The problem can be solved by classifying abalones in three classes of the ring based on these features
+
+Importing abalone data.
+
+```{r}
+abalone = read.csv('Abalone.csv')
+abalone$sex = NULL
+```
+
+The data is pre-processed by converting two categories of categorical variable 'diagnosis' into factors. Further they are divided into train and test set.
+
+```{r}
+abalone$groups = cut(abalone$rings, breaks = c(0,8,10,max(abalone$rings)))
+levels(abalone$groups)=c("1", "2", "3")
+abalone$rings = NULL
+```
+
+The data is partitioned based on 75% train-test split. i.e. 75% of the instances are considered for training set and rest of the them to test set.
+
+```{r}
+library(caTools)
+set.seed(240)
+split = sample.split(abalone$groups, SplitRatio = 3/4)
+abalone_train = subset(abalone, split == T)
+abalone_test = subset(abalone, split == F)
+```
+
+Both train and test sets are Standardizied in the follwing way.
+
+```{r}
+abalone_train[, 1:7] = scale(abalone_train[, 1:7])
+abalone_test[, 1:7] = scale(abalone_test[, 1:7])
+```
+
+The classification methods selected for the analysis are Linear Discriminant analysis (LDA), Naive Bayes (NB), Support Vector Machine (Kernel SVM) and Random Forest (RF).
+
+These four methods are trained on training data and then the outcomes are predicted on test data.
+
+
+
+
+
+
+APPLYING LDA:
+
+```{r}
+library(MASS)
+set.seed(240)
+lda_abalone = train(groups ~. , data=abalone_train, method='lda')
+```
+
+
+The LDA algorithm is fitted to training dataset, further the observations are predicted on the test set.
+
+```{r}
+abalone.lda_pred = predict(lda_abalone, abalone_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics in the following way.
+
+```{r}
+confusionMatrix(abalone.lda_pred, abalone_test$groups, mode = "everything")
+```
+
+The above confusion matrix indicates that the LDA model was able to correctly classify 671 instances out of 1045 instances of test data. The accuracy and Kappa statistic for the model is 64.21% and 46.35% respectively.
+
+
+
+
+
+APPLYING NAIVE BAYES:
+
+```{r}
+#install.packages('e1071')
+library(e1071)
+library(klaR)
+set.seed(240)
+naive_bayes.abalone = train(groups ~. , data=abalone_train, method='nb')
+```
+
+The Naive Bayes algorithm is fitted to the training data, further the outcomes of test data are predicted in the following way. 
+
+```{r}
+abalone.nb_pred = predict(naive_bayes.abalone, abalone_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
+
+```{r}
+confusionMatrix(abalone.nb_pred, abalone_test$groups, mode = "everything")
+```
+
+The above confusion matrix indicates that the Naive Bayes model was able to correctly classify 602 instances out of 1045 instances of test data. The accuracy and Kappa statistic for the model is 57.61% and 36.47% respectively.
+
+
+
+
+
+
+
+APPLYING SVM:
+
+```{r}
+set.seed(240)
+svm.abalone = train(groups ~. , data=abalone_train, method='svmRadial')
+```
+
+The SVM is fitted to the training data, further the outcomes of test data are predicted in the following way.
+
+```{r}
+abalone.svm_pred = predict(svm.abalone, newdata = abalone_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
+
+```{r}
+confusionMatrix(abalone.svm_pred, abalone_test$groups, mode = "everything")
+```
+
+The above confusion matrix indicates that the SVM model was able to correctly classify 67 instances out of 1045 instances of test data. The accuracy and Kappa statistic for the model is 64.21% and 46.18% respectively.
+
+```{r}
+plot(svm.abalone)
+```
+
+
+
+
+
+
+
+APPLYING RANDOM FOREST:
+
+```{r}
+#install.packages('randomForest')
+library(randomForest)
+set.seed(240)
+rf.abalone = train(groups ~. , data=abalone_train, method='rf')
+```
+
+The Random Forest algorithm is fitted to the training data, further the outcomes of test data are predicted in the following way.
+
+```{r}
+abalone.rf_pred = predict(rf.abalone, newdata = abalone_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
+
+```{r}
+confusionMatrix(abalone.rf_pred, abalone_test$groups, mode = "everything")
+```
+The above confusion matrix indicates that the RF model was able to correctly classify 686 instances out of 1045 instances of test data. The accuracy and Kappa statistic for the model is 65.65% and 48.39% respectively.
+
+
+
+
+
+
+
+The four classification algorithms are compared based on their Accuracy and Kappa statistic.
+
+```{r}
+abalone.model_comparison <- resamples(list(LDA=lda_abalone, NB=naive_bayes.abalone, SVM=svm.abalone, RF=rf.abalone))
+
+summary(abalone.model_comparison)
+```
+
+
+```{r}
+scales <- list(x=list(relation="free"), y=list(relation="free"))
+bwplot(abalone.model_comparison, scales=scales)
+densityplot(abalone.model_comparison, scales=scales, pch = "|")
+dotplot(abalone.model_comparison, scales=scales)
+parallelplot(abalone.model_comparison)
+splom(abalone.model_comparison)
+xyplot(abalone.model_comparison, models=c("SVM", "LDA"))
+diffs <- diff(abalone.model_comparison)
+summary(diffs)
+```
+
+It is observed from the above box-plot that the SVM is the best model in terms of Accuracy score and Kappa statistic.
+
+
+
+
+
+
+```{r make a table, results='asis'}
+table = matrix(NA, nrow = 4, ncol = 3)
+colnames(table) = c("Models", "Accuracy", "Kappa")
+table[1, ] = c("Linear Discriminant Analysis (LDA)", "64.21%", "0.4635" )
+table[2, ] = c("Naive Bayes (NB)", "57.61%", "0.3647" )
+table[3, ] = c("Support Vector Machine (SVM)", "64.21%", "0.4618" )
+table[4, ] = c("Random Forest (RF)", "65.65%", "0.4839" )
+
+
+#install.packages("kableExtra")
+library(kableExtra)
+kable(table, caption = "Results of abalone data")
+```
+
+
+

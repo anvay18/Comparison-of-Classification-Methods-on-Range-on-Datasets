@@ -1,0 +1,285 @@
+---
+title: "iris2 data analysis"
+author: "Anvay Ajit Karambelkar"
+date: "02/10/2019"
+output: html_document
+---
+
+
+
+
+R libraries
+
+```{r}
+library(knitr)
+library(rmarkdown)
+library(markdown)
+library(caret)
+```
+
+       
+```{r}
+iris2 = read.csv('iris2.csv')
+head(iris2)
+```
+
+The data is pre-processed by converting three categories of categorical variable 'species' into factors. Further they are divided into train and test set.
+
+```{r}
+iris2$species = factor(iris2$species,
+                      levels = c('Iris-versicolor', 'Iris-virginica'),
+                      labels = c(1, 2))
+head(iris2)
+```
+
+The data is partitioned based on 66% train-test split. i.e. 66% of the instances are considered for training set and rest of the them to test set.
+
+```{r}
+library(caTools)
+set.seed(122)
+split = sample.split(iris2$species, SplitRatio = 2/3)
+iris2_train = subset(iris2, split == T)
+iris2_test = subset(iris2, split == F)
+```
+
+The classification methods selected for the analysis are Logistic Regression (LR) Linear Discriminant analysis (LDA), Naive Bayes (NB), Support Vector Machine (Kernel SVM) and Random Forest (RF).
+
+These five methods are trained on training data and then the outcomes are predicted on test data.
+  
+
+
+
+
+
+APPLYING LR:
+
+```{r}
+set.seed(122)
+glm_iris2 = train(species ~ ., data=iris2_train, method='glm')
+```
+
+The LR algorithm is fitted to training dataset, further the observations are predicted on the test set.
+
+```{r}
+iris2.glm_pred = predict(glm_iris2, iris2_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics in the following way.
+
+```{r}
+confusionMatrix(iris2.glm_pred, iris2_test$species, mode = "everything")
+```
+
+The above confusion matrix indicates that the LR model was able to correctly classify 33 instances out of 34 instances of test data. The accuracy and Kappa statistic for the model is 97.06% and 94.12% respectively.
+
+
+
+
+
+
+APPLYING LDA:
+
+```{r}
+library(MASS)
+set.seed(122)
+lda_iris2 = train(species ~ ., data=iris2_train, method='lda')
+```
+
+The LDA algorithm is fitted to training dataset, further the observations are predicted on the test set.
+
+```{r}
+iris2.lda_pred = predict(lda_iris2, iris2_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics in the following way.
+
+```{r}
+confusionMatrix(iris2.lda_pred, iris2_test$species, mode = "everything")
+```
+
+The above confusion matrix indicates that the LDA model was able to correctly classify  instances out of 34 instances of test data. The accuracy and Kappa statistic for the model is 97.06% and 94.12% respectively.
+
+#The scatterplot of confusion matrix for LDA algorithm is shown below.
+
+```{r}
+#iris2_test$iris2.lda_pred <- iris2.lda_pred
+#ggplot(iris2_test, aes(species, iris2.lda_pred, color = species)) +
+  #geom_jitter(width = 0.2, height = 0.1, size=2) +
+  #labs(title="Confusion Matrix for LDA", 
+       #subtitle="Predicted vs Observed from iris2 dataset", 
+       #y="Predicted", 
+       #x="Truth")
+```
+
+
+
+
+
+
+
+APPLYING NAIVE BAYES:
+
+```{r}
+library(e1071)
+library(klaR)
+set.seed(122)
+naive_bayes.iris2 = train(species ~ ., data=iris2_train, method='nb')
+```
+
+The Naive Bayes algorithm is fitted to the training data, further the outcomes of test data are predicted in the following way. 
+
+```{r}
+iris2.nb_pred = predict(naive_bayes.iris2, iris2_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
+
+```{r}
+confusionMatrix(iris2.nb_pred, iris2_test$species, mode = "everything")
+```
+
+The above confusion matrix indicates that the Naive Bayes model was able to correctly classify 32 instances out of 34 instances of test data. The accuracy and Kappa statistic for the model is 94.12% and 88.24% respectively.
+
+#The scatterplot of confusion matrix for Naive Bayes algorithm is shown below.
+
+```{r}
+#library(ggplot2)
+#iris2_test$iris2.nb_pred <- iris2.nb_pred
+#ggplot(iris2_test, aes(species, iris2.nb_pred, color = species)) +
+  #geom_jitter(width = 0.2, height = 0.1, size=2) +
+  #labs(title="Confusion Matrix for Naive Bayes", 
+    #   subtitle="Predicted vs Observed from iris2 dataset", 
+     #  y="Predicted", 
+      # x="Truth")
+```
+
+
+
+
+
+
+
+
+APPLYING SVM:
+
+```{r}
+set.seed(122)
+svm.iris2 = train(species ~ ., data=iris2_train, method='svmRadial')
+```
+
+The SVM is fitted to the training data, further the outcomes of test data are predicted in the following way.
+
+```{r}
+iris2.svm_pred = predict(svm.iris2, newdata = iris2_test[, 1:4])
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
+
+```{r}
+confusionMatrix(iris2.svm_pred, iris2_test$species, mode = "everything")
+```
+
+The above confusion matrix indicates that the SVM model was able to correctly classify 32 instances out of 34 instances of test data. The accuracy and Kappa statistic for the model is 94.12% and 88.24% respectively.
+
+#The scatterplot of confusion matrix for SVM algorithm is shown below.
+
+```{r}
+#iris2_test$iris2.svm_pred <- iris2.svm_pred
+#ggplot(iris2_test, aes(species, iris2.svm_pred, color = species)) +
+  #geom_jitter(width = 0.2, height = 0.1, size=2) +
+  #labs(title="Confusion Matrix for SVM", 
+   #    subtitle="Predicted vs Observed from iris2 dataset", 
+    #   y="Predicted", 
+     #  x="Truth")
+```
+
+
+
+
+
+
+
+
+APPLYING RANDOM FOEREST:
+
+```{r}
+library(randomForest)
+set.seed(122)
+rf.iris2 = train(species ~ ., data=iris2_train, method='rf')
+```
+
+The Random Forest algorithm is fitted to the training data, further the outcomes of test data are predicted in the following way.
+
+```{r}
+iris2.rf_pred = predict(rf.iris2, newdata = iris2_test[, 1:4])
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
+
+```{r}
+confusionMatrix(iris2.rf_pred, iris2_test$species, mode = "everything")
+```
+
+The above confusion matrix indicates that the Random Forest model was able to correctly classify 31 instances out of 34 instances of test data. The accuracy and Kappa statistic for the model is 91.18% and 82.35% respectively.
+
+#The scatterplot of confusion matrix for Random Forest algorithm is shown below.
+
+```{r}
+#iris2_test$iris2.rf_pred <- iris2.rf_pred
+#ggplot(iris2_test, aes(species, iris2.rf_pred, color = species)) +
+ # geom_jitter(width = 0.2, height = 0.1, size=2) +
+  #labs(title="Confusion Matrix for RF", 
+   #    subtitle="Predicted vs Observed from iris2 dataset", 
+    #   y="Predicted", 
+     #  x="Truth")
+```
+
+The five classification algorithms are compared based on their Accuracy and Kappa statistic.
+
+```{r}
+iris2.model_comparison <- resamples(list(LR=glm_iris2, LDA=lda_iris2, NB=naive_bayes.iris2, SVM=svm.iris2, RF=rf.iris2))
+
+summary(iris2.model_comparison)
+```
+
+
+```{r}
+scales <- list(x=list(relation="free"), y=list(relation="free"))
+bwplot(iris2.model_comparison, scales=scales)
+densityplot(iris2.model_comparison, scales=scales, pch = "|")
+dotplot(iris2.model_comparison, scales=scales)
+parallelplot(iris2.model_comparison)
+splom(iris2.model_comparison)
+xyplot(iris2.model_comparison, models=c("SVM", "LDA"))
+diffs <- diff(iris2.model_comparison)
+summary(diffs)
+```
+
+It is observed from the above box-plot that the LDA is the best model in terms of Accuracy score and Kappa statistic.
+
+```{r make a table, results='asis'}
+table = matrix(NA, nrow = 5, ncol = 3)
+colnames(table) = c("Models", "Accuracy", "Kappa")
+table[1, ] = c("Logistic Regression (LR)", "97.06%", "0.9412" )
+table[2, ] = c("Linear Discriminant Analysis (LDA)", "97.06%", "0.9412" )
+table[3, ] = c("Naive Bayes (NB)", "94.12%", "0.8824" )
+table[4, ] = c("Support Vector Machine (SVM)", "91.18%", "0.8235" )
+table[5, ] = c("Random Forest (RF)", "91.18%", "0.8235" )
+
+#install.packages("kableExtra")
+library(kableExtra)
+kable(table, caption = "Results of iris2 data")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

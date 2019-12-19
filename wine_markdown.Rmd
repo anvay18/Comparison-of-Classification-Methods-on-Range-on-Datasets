@@ -1,0 +1,206 @@
+---
+title: "Wine Data Analysis"
+author: "Anvay Ajit Karambelkar"
+date: "09/09/2019"
+output: html_document
+---
+
+R libraries
+
+```{r}
+library(knitr)
+library(rmarkdown)
+library(markdown)
+library(caret)
+```
+
+The data represents the features which are the results of the chemical analysis of wine grown in Italy. The chemical analysis contains 13 chemical elements from three types of wines.
+
+Importing Wine data.
+
+```{r}
+wine = read.csv('wine.csv')
+head(wine)
+```
+
+Converting the class variable into factors.
+
+```{r}
+wine$cultivars = as.factor(wine$cultivars)
+```
+
+The data is partitioned based on 66% train-test split. i.e. 66% of the instances are considered for training set and rest of the them to test set.
+
+```{r}
+library(caTools)
+set.seed(123)
+split = sample.split(wine$cultivars, SplitRatio = 2/3)
+wine_train = subset(wine, split == T)
+wine_test = subset(wine, split == F)
+```
+
+Both train and test sets are Standardizied in the follwing way.
+
+```{r}
+wine_train[-1] = scale(wine_train[-1])
+wine_test[-1] = scale(wine_test[-1])
+```
+
+The classification methods selected for the analysis are Linear Discriminant analysis (LDA), Naive Bayes (NB), Support Vector Machine (Kernel SVM) and Random Forest (RF).
+
+These four methods are trained on training data and then the outcomes are predicted on test data.
+
+
+
+
+
+
+APPLYING LDA:
+
+```{r}
+library(MASS)
+set.seed(123)
+lda_wine = train(cultivars ~ ., data=wine_train, method='lda')
+```
+
+
+The LDA algorithm is fitted to training dataset, further the observations are predicted on the test set.
+
+```{r}
+wine.lda_pred = predict(lda_wine, wine_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics in the following way.
+
+```{r}
+confusionMatrix(wine.lda_pred, wine_test$cultivars, mode = "everything")
+```
+
+The above confusion matrix indicates that the LDA model was able to correctly classify 58 instances out of 60 instances of test data. The accuracy and Kappa statistic for the model is 96.67% and 94.94% respectively.
+
+
+
+
+
+APPLYING NAIVE BAYES:
+
+```{r}
+#install.packages('e1071')
+library(e1071)
+library(klaR)
+set.seed(123)
+naive_bayes.wine = train(cultivars ~ ., data=wine_train, method='nb')
+```
+
+The Naive Bayes algorithm is fitted to the training data, further the outcomes of test data are predicted in the following way. 
+
+```{r}
+wine.nb_pred = predict(naive_bayes.wine, wine_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
+
+```{r}
+confusionMatrix(wine.nb_pred, wine_test$cultivars, mode = "everything")
+```
+
+The above confusion matrix indicates that the Naive Bayes model was able to correctly classify 58 instances out of 60 instances of test data. The accuracy and Kappa statistic for the model is 96.67% and 94.94% respectively.
+
+
+
+
+
+
+
+APPLYING SVM:
+
+```{r}
+set.seed(123)
+svm.wine = train(cultivars ~ ., data=wine_train, method='svmRadial')
+```
+
+The SVM is fitted to the training data, further the outcomes of test data are predicted in the following way.
+
+```{r}
+wine.svm_pred = predict(svm.wine, newdata = wine_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
+
+```{r}
+confusionMatrix(wine.svm_pred, wine_test$cultivars, mode = "everything")
+```
+
+The above confusion matrix indicates that the SVM model was able to correctly classify 58 instances out of 60 instances of test data. The accuracy and Kappa statistic for the model is 96.67% and 94.94% respectively.
+
+
+
+
+
+
+APPLYING RANDOM FOREST:
+
+```{r}
+#install.packages('randomForest')
+library(randomForest)
+set.seed(123)
+rf.wine = train(cultivars ~ ., data=wine_train, method='rf')
+```
+
+The Random Forest algorithm is fitted to the training data, further the outcomes of test data are predicted in the following way.
+
+```{r}
+wine.rf_pred = predict(rf.wine, newdata = wine_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
+
+```{r}
+confusionMatrix(wine.rf_pred, wine_test$cultivars, mode = "everything")
+```
+
+The above confusion matrix indicates that the Random Forest model was able to correctly classify 59 instances out of 60 instances of test data. The accuracy and Kappa statistic for the model is 98.33% and 97.47% respectively.
+
+
+
+
+
+
+
+The four classification algorithms are compared based on their Accuracy and Kappa statistic.
+
+```{r}
+wine.model_comparison <- resamples(list(LDA=lda_wine, NB=naive_bayes.wine, SVM=svm.wine, RF=rf.wine))
+
+summary(wine.model_comparison)
+```
+
+
+```{r}
+scales <- list(x=list(relation="free"), y=list(relation="free"))
+bwplot(wine.model_comparison, scales=scales)
+```
+
+It is observed from the above box-plot that the SVM is the best model in terms of Accuracy score and Kappa statistic.
+
+
+
+
+
+
+```{r make a table, results='asis'}
+table = matrix(NA, nrow = 4, ncol = 3)
+colnames(table) = c("Models", "Accuracy", "Kappa")
+table[1, ] = c("Linear Discriminant Analysis (LDA)", "95.71%", "90.47%" )
+table[2, ] = c("Naive Bayes (NB)", "100.00%", "100.00%" )
+table[3, ] = c("Support Vector Machine (SVM)", "100.00%", "100.00%" )
+table[4, ] = c("Random Forest (RF)", "97.72%", "96.50%" )
+
+
+#install.packages("kableExtra")
+library(kableExtra)
+kable(table, caption = "Results of Wine data")
+```
+
+
+

@@ -1,0 +1,246 @@
+---
+title: "Cancer2 data analysis"
+author: "Anvay Ajit Karambelkar"
+date: "04/10/2019"
+output: html_document
+---
+
+
+
+
+
+R libraries
+
+```{r}
+library(knitr)
+library(rmarkdown)
+library(markdown)
+library(caret)
+```
+
+This dataset contains attributes evaluated from images of breast mass. To solve the problem by classifying the instances into malignant and benign.
+
+Importing cancer data.
+
+```{r}
+wdbc2 = read.csv('wdbc2.csv')
+Attributes <- c("radius", "texture", "perimeter", 
+              "area", "smoothness", "compactness", 
+              "concavity", "concave_points", "symmetry", 
+              "fractal_dimension")
+names(wdbc2) <- c("diagnosis", paste0(Attributes,"_mean"), paste0(Attributes,"_se"), paste0(Attributes,"_worst"))
+```
+
+The data is pre-processed by converting two categories of categorical variable 'diagnosis' into factors. Further they are divided into train and test set.
+
+```{r}
+wdbc2$diagnosis = factor(wdbc2$diagnosis, levels = c('M','B'), labels = c(0,1))
+```
+
+The data is partitioned based on 66% train-test split. i.e. 66% of the instances are considered for training set and rest of the them to test set.
+
+```{r}
+set.seed(24)
+library(caTools)
+split = sample.split(wdbc2$diagnosis, SplitRatio = 2/3)
+wdbc2_train = subset(wdbc2, split == T)
+wdbc2_test = subset(wdbc2, split == F)
+```
+
+Both train and test sets are Standardizied in the follwing way.
+
+```{r}
+wdbc2_train[, 2:31] = scale(wdbc2_train[, 2:31])
+wdbc2_test[, 2:31] = scale(wdbc2_test[, 2:31])
+```
+
+The classification methods selected for the analysis are Linear Discriminant analysis (LDA), Naive Bayes (NB), Support Vector Machine (Kernel SVM) and Random Forest (RF).
+
+These five methods are trained on training data and then the outcomes are predicted on test data.
+
+
+
+
+
+
+APPLYING LR:
+
+```{r}
+set.seed(24)
+glm_wdbc2 = train(diagnosis ~ ., data=wdbc2_train, method='glm')
+```
+
+The LR algorithm is fitted to training dataset, further the observations are predicted on the test set.
+
+```{r}
+wdbc2.glm_pred = predict(glm_wdbc2, wdbc2_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics in the following way.
+
+```{r}
+confusionMatrix(wdbc2.glm_pred, wdbc2_test$diagnosis, mode = "everything")
+```
+
+The above confusion matrix indicates that the LR model was able to correctly classify 176 instances out of 379 instances of test data. The accuracy and Kappa statistic for the model is 92.63% and 83.99% respectively.
+
+
+
+
+
+APPLYING LDA:
+
+```{r}
+library(MASS)
+set.seed(24)
+lda_wdbc2 = train(diagnosis ~ ., data=wdbc2_train, method='lda')
+```
+
+
+The LDA algorithm is fitted to training dataset, further the observations are predicted on the test set.
+
+```{r}
+wdbc2.lda_pred = predict(lda_wdbc2, wdbc2_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics in the following way.
+
+```{r}
+confusionMatrix(wdbc2.lda_pred, wdbc2_test$diagnosis, mode = "everything")
+```
+
+The above confusion matrix indicates that the LDA model was able to correctly classify 182 instances out of 379 instances of test data. The accuracy and Kappa statistic for the model is 95.79% and 90.8% respectively.
+
+
+
+
+
+
+APPLYING NAIVE BAYES:
+
+```{r}
+#install.packages('e1071')
+library(e1071)
+library(klaR)
+set.seed(24)
+naive_bayes.wdbc2 = train(diagnosis ~ ., data=wdbc2_train, method='nb')
+```
+
+The Naive Bayes algorithm is fitted to the training data, further the outcomes of test data are predicted in the following way. 
+
+```{r}
+wdbc2.nb_pred = predict(naive_bayes.wdbc2, wdbc2_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
+
+```{r}
+confusionMatrix(wdbc2.nb_pred, wdbc2_test$diagnosis, mode = "everything")
+```
+
+The above confusion matrix indicates that the Naive Bayes model was able to correctly classify 178 instances out of 379 instances of test data. The accuracy and Kappa statistic for the model is 93.68% and 86.35% respectively.
+
+
+
+
+
+
+
+APPLYING SVM:
+
+```{r}
+set.seed(24)
+svm.wdbc2 = train(diagnosis ~ ., data=wdbc2_train, method='svmRadial')
+```
+
+The SVM is fitted to the training data, further the outcomes of test data are predicted in the following way.
+
+```{r}
+wdbc2.svm_pred = predict(svm.wdbc2, newdata = wdbc2_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
+
+```{r}
+confusionMatrix(wdbc2.svm_pred, wdbc2_test$diagnosis, mode = "everything")
+```
+
+The above confusion matrix indicates that the SVM model was able to correctly classify 181 instances out of 379 instances of test data. The accuracy and Kappa statistic for the model is 95.26% and 89.73% respectively.
+
+
+
+
+
+
+APPLYING RANDOM FOREST:
+
+```{r}
+#install.packages('randomForest')
+library(randomForest)
+set.seed(24)
+rf.wdbc2 = train(diagnosis ~ ., data=wdbc2_train, method='rf')
+```
+
+The Random Forest algorithm is fitted to the training data, further the outcomes of test data are predicted in the following way.
+
+```{r}
+wdbc2.rf_pred = predict(rf.wdbc2, newdata = wdbc2_test)
+```
+
+The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
+
+```{r}
+confusionMatrix(wdbc2.rf_pred, wdbc2_test$diagnosis, mode = "everything")
+```
+
+The above confusion matrix indicates that the Random Forest model was able to correctly classify 180 instances out of 379 instances of test data. The accuracy and Kappa statistic for the model is 94.74% and 88.56% respectively.
+
+
+
+
+
+
+The four classification algorithms are compared based on their Accuracy and Kappa statistic.
+
+```{r}
+wdbc2.model_comparison <- resamples(list(LR=glm_wdbc2, LDA=lda_wdbc2, NB=naive_bayes.wdbc2, SVM=svm.wdbc2, RF=rf.wdbc2))
+
+summary(wdbc2.model_comparison)
+```
+
+
+```{r}
+scales <- list(x=list(relation="free"), y=list(relation="free"))
+bwplot(wdbc2.model_comparison, scales=scales)
+densityplot(wdbc2.model_comparison, scales=scales, pch = "|")
+dotplot(wdbc2.model_comparison, scales=scales)
+parallelplot(wdbc2.model_comparison)
+splom(wdbc2.model_comparison)
+xyplot(wdbc2.model_comparison, models=c("SVM", "LDA"))
+diffs <- diff(wdbc2.model_comparison)
+summary(diffs)
+```
+
+It is observed from the above box-plot that the LDA is the best model in terms of Accuracy score and Kappa statistic.
+
+
+
+
+
+
+```{r make a table, results='asis'}
+table = matrix(NA, nrow = 5, ncol = 3)
+colnames(table) = c("Models", "Accuracy", "Kappa")
+table[1, ] = c("Logistic Regression (LR)", "92.63%", "0.8399" )
+table[2, ] = c("Linear Discriminant Analysis (LDA)", "95.79%", "0.908" )
+table[3, ] = c("Naive Bayes (NB)", "93.68%", "0.8635" )
+table[4, ] = c("Support Vector Machine (SVM)", "95.26%", "0.8973" )
+table[5, ] = c("Random Forest (RF)", "95.26%", "0.8973" )
+
+#install.packages("kableExtra")
+library(kableExtra)
+kable(table, caption = "Results of Breast Cancer Wisconsin data")
+```
+
+
+
