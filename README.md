@@ -1,5 +1,6 @@
 # Comparison Of Classification Methods on a range of Datasets
 Anvay Karambelkar
+
 Master of Analytics - Auckland University of Technology
 
 A thesis created for Master of Analytics degree in Analytics. 
