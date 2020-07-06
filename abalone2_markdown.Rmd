@@ -7,7 +7,6 @@ output: html_document
 
 
 
-
 R libraries
 
 ```{r}
@@ -16,7 +15,6 @@ library(rmarkdown)
 library(markdown)
 library(caret)
 ```
-
 
 Importing abalone data.
 
