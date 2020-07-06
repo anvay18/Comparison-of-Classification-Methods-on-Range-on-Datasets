@@ -47,10 +47,6 @@ abalone2_test[, 1:7] = scale(abalone2_test[, 1:7])
 The classification methods selected for the analysis are Logistic Regression (LR) Linear Discriminant analysis (LDA), Naive Bayes (NB), Support Vector Machine (Kernel SVM) and Random Forest (RF).
 
 These five methods are trained on training data and then the outcomes are predicted on test data.
-  
-
-
-
 
 
 APPLYING LR:
@@ -73,10 +69,6 @@ confusionMatrix(abalone2.glm_pred, abalone2_test$groups, mode = "everything")
 ```
 
 The above confusion matrix indicates that the LR model was able to correctly classify 476 instances out of 693 instances of test data. The accuracy and Kappa statistic for the model is 68.69% and 37.42% respectively.
-
-
-
-
 
 
 APPLYING LDA:
@@ -112,11 +104,6 @@ The above confusion matrix indicates that the LDA model was able to correctly cl
        #y="Predicted", 
        #x="Truth")
 ```
-
-
-
-
-
 
 
 APPLYING NAIVE BAYES:
@@ -156,12 +143,6 @@ The above confusion matrix indicates that the Naive Bayes model was able to corr
 ```
 
 
-
-
-
-
-
-
 APPLYING SVM:
 
 ```{r}
@@ -194,12 +175,6 @@ The above confusion matrix indicates that the SVM model was able to correctly cl
     #   y="Predicted", 
      #  x="Truth")
 ```
-
-
-
-
-
-
 
 
 APPLYING RANDOM FOEREST:
@@ -235,10 +210,6 @@ The above confusion matrix indicates that the Random Forest model was able to co
     #   y="Predicted", 
      #  x="Truth")
 ```
-
-
-
-
 
 The five classification algorithms are compared based on their Accuracy and Kappa statistic.
 
