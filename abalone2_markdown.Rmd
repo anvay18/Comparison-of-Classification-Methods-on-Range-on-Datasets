@@ -6,9 +6,7 @@ output: html_document
 ---
 
 
-
 R libraries
-
 ```{r}
 library(knitr)
 library(rmarkdown)
@@ -17,7 +15,6 @@ library(caret)
 ```
 
 Importing abalone data.
-
 ```{r}
 abalone2 = read.csv('Abalone2.csv')
 abalone2$sex = NULL
@@ -26,7 +23,6 @@ abalone2$groups = factor(abalone2$groups)
 ```
 
 The data is partitioned based on 75% train-test split. i.e. 75% of the instances are considered for training set and rest of the them to test set.
-
 ```{r}
 library(caTools)
 set.seed(240)
@@ -36,7 +32,6 @@ abalone2_test = subset(abalone2, split == F)
 ```
 
 Both train and test sets are Standardizied in the follwing way.
-
 ```{r}
 abalone2_train[, 1:7] = scale(abalone2_train[, 1:7])
 abalone2_test[, 1:7] = scale(abalone2_test[, 1:7])
@@ -48,51 +43,39 @@ These five methods are trained on training data and then the outcomes are predic
 
 
 APPLYING LR:
-
 ```{r}
 set.seed(240)
 glm_abalone2 = train(groups ~. , data=abalone2_train, method='glm')
 ```
-
 The LR algorithm is fitted to training dataset, further the observations are predicted on the test set.
-
 ```{r}
 abalone2.glm_pred = predict(glm_abalone2, abalone2_test)
 ```
-
 The model is evaluated based on the confusion matrix and other evalution metrics in the following way.
-
 ```{r}
 confusionMatrix(abalone2.glm_pred, abalone2_test$groups, mode = "everything")
 ```
-
 The above confusion matrix indicates that the LR model was able to correctly classify 476 instances out of 693 instances of test data. The accuracy and Kappa statistic for the model is 68.69% and 37.42% respectively.
 
 
 APPLYING LDA:
-
 ```{r}
 library(MASS)
 set.seed(240)
 lda_abalone2 = train(groups ~. , data=abalone2_train, method='lda')
 ```
-
 The LDA algorithm is fitted to training dataset, further the observations are predicted on the test set.
-
 ```{r}
 abalone2.lda_pred = predict(lda_abalone2, abalone2_test)
 ```
-
 The model is evaluated based on the confusion matrix and other evalution metrics in the following way.
-
 ```{r}
 confusionMatrix(abalone2.lda_pred, abalone2_test$groups, mode = "everything")
 ```
-
 The above confusion matrix indicates that the LDA model was able to correctly classify 477 instances out of 693 instances of test data. The accuracy and Kappa statistic for the model is 68.83% and 37.75% respectively.
 
-#The scatterplot of confusion matrix for LDA algorithm is shown below.
 
+#The scatterplot of confusion matrix for LDA algorithm is shown below.
 ```{r}
 #abalone2_test$abalone2.lda_pred <- abalone2.lda_pred
 #ggplot(abalone2_test, aes(groups, abalone2.lda_pred, color = groups)) +
@@ -105,30 +88,23 @@ The above confusion matrix indicates that the LDA model was able to correctly cl
 
 
 APPLYING NAIVE BAYES:
-
 ```{r}
 library(e1071)
 library(klaR)
 set.seed(240)
 naive_bayes.abalone2 = train(groups ~. , data=abalone2_train, method='nb')
 ```
-
 The Naive Bayes algorithm is fitted to the training data, further the outcomes of test data are predicted in the following way. 
-
 ```{r}
 abalone2.nb_pred = predict(naive_bayes.abalone2, abalone2_test)
 ```
-
 The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
-
 ```{r}
 confusionMatrix(abalone2.nb_pred, abalone2_test$groups, mode = "everything")
 ```
-
 The above confusion matrix indicates that the Naive Bayes model was able to correctly classify 389 instances out of 693 instances of test data. The accuracy and Kappa statistic for the model is 56.13% and 13.19% respectively.
 
 #The scatterplot of confusion matrix for Naive Bayes algorithm is shown below.
-
 ```{r}
 #library(ggplot2)
 #abalone2_test$abalone2.nb_pred <- abalone2.nb_pred
@@ -142,28 +118,21 @@ The above confusion matrix indicates that the Naive Bayes model was able to corr
 
 
 APPLYING SVM:
-
 ```{r}
 set.seed(240)
 svm.abalone2 = train(groups ~. , data=abalone2_train, method='svmRadial')
 ```
-
 The SVM is fitted to the training data, further the outcomes of test data are predicted in the following way.
-
 ```{r}
 abalone2.svm_pred = predict(svm.abalone2, newdata = abalone2_test)
 ```
-
 The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
-
 ```{r}
 confusionMatrix(abalone2.svm_pred, abalone2_test$groups, mode = "everything")
 ```
-
 The above confusion matrix indicates that the SVM model was able to correctly classify 467 instances out of 693 instances of test data. The accuracy and Kappa statistic for the model is 67.39% and 34.61% respectively.
 
 #The scatterplot of confusion matrix for SVM algorithm is shown below.
-
 ```{r}
 #abalone2_test$abalone2.svm_pred <- abalone2.svm_pred
 #ggplot(abalone2_test, aes(groups, abalone2.svm_pred, color = groups)) +
@@ -176,29 +145,22 @@ The above confusion matrix indicates that the SVM model was able to correctly cl
 
 
 APPLYING RANDOM FOEREST:
-
 ```{r}
 library(randomForest)
 set.seed(240)
 rf.abalone2 = train(groups ~. , data=abalone2_train, method='rf')
 ```
-
 The Random Forest algorithm is fitted to the training data, further the outcomes of test data are predicted in the following way.
-
 ```{r}
 abalone2.rf_pred = predict(rf.abalone2, newdata = abalone2_test)
 ```
-
 The model is evaluated based on the confusion matrix and other evalution metrics as shown below.
-
 ```{r}
 confusionMatrix(abalone2.rf_pred, abalone2_test$groups, mode = "everything")
 ```
-
 The above confusion matrix indicates that the Random Forest model was able to correctly classify 478 instances out of 693 instances of test data. The accuracy and Kappa statistic for the model is 68.98% and 37.83% respectively.
 
 #The scatterplot of confusion matrix for Random Forest algorithm is shown below.
-
 ```{r}
 #abalone2_test$abalone2.rf_pred <- abalone2.rf_pred
 #ggplot(abalone2_test, aes(groups, abalone2.rf_pred, color = groups)) +
@@ -210,14 +172,11 @@ The above confusion matrix indicates that the Random Forest model was able to co
 ```
 
 The five classification algorithms are compared based on their Accuracy and Kappa statistic.
-
 ```{r}
 abalone2.model_comparison <- resamples(list(LR=glm_abalone2, LDA=lda_abalone2, NB=naive_bayes.abalone2, SVM=svm.abalone2, RF=rf.abalone2))
 
 summary(abalone2.model_comparison)
 ```
-
-
 ```{r}
 scales <- list(x=list(relation="free"), y=list(relation="free"))
 bwplot(abalone2.model_comparison, scales=scales)
