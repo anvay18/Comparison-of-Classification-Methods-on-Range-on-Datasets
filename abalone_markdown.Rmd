@@ -7,7 +7,6 @@ output: html_document
 
 
 R libraries
-
 ```{r}
 library(knitr)
 library(rmarkdown)
@@ -18,14 +17,12 @@ library(caret)
 The attributes in this data are the physical measurements of abalone shell and the classes represents number of rings. The rings are segregated into three categories (rings 1-8 in one class, 9 and 10 into second class, 11 onwards into third class). The age of abalone can be calculated by counting the number of rings  on the shell, but this task can be tedious and time-consuming. The problem can be solved by classifying abalones in three classes of the ring based on these features
 
 Importing abalone data.
-
 ```{r}
 abalone = read.csv('Abalone.csv')
 abalone$sex = NULL
 ```
 
 The data is pre-processed by converting two categories of categorical variable 'diagnosis' into factors. Further they are divided into train and test set.
-
 ```{r}
 abalone$groups = cut(abalone$rings, breaks = c(0,8,10,max(abalone$rings)))
 levels(abalone$groups)=c("1", "2", "3")
@@ -40,17 +37,18 @@ split = sample.split(abalone$groups, SplitRatio = 3/4)
 abalone_train = subset(abalone, split == T)
 abalone_test = subset(abalone, split == F)
 ```
-Both train and test sets are Standardizied in the follwing way.
 
+Both train and test sets are Standardizied in the follwing way.
 ```{r}
 abalone_train[, 1:7] = scale(abalone_train[, 1:7])
 abalone_test[, 1:7] = scale(abalone_test[, 1:7])
 ```
+
 The classification methods selected for the analysis are Linear Discriminant analysis (LDA), Naive Bayes (NB), Support Vector Machine (Kernel SVM) and Random Forest (RF).
 These four methods are trained on training data and then the outcomes are predicted on test data.
 
-APPLYING LDA:
 
+APPLYING LDA:
 ```{r}
 library(MASS)
 set.seed(240)
@@ -64,7 +62,6 @@ The model is evaluated based on the confusion matrix and other evalution metrics
 ```{r}
 confusionMatrix(abalone.lda_pred, abalone_test$groups, mode = "everything")
 ```
-
 The above confusion matrix indicates that the LDA model was able to correctly classify 671 instances out of 1045 instances of test data. The accuracy and Kappa statistic for the model is 64.21% and 46.35% respectively.
 
 
